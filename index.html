@@ -38,41 +38,36 @@
             const [counterType, setCounterType] = useState(null);
             const [counterInputs, setCounterInputs] = useState({});
 
-            // --- منطق توزيع السيارات الجديد (الأولوية للجرار والفردي) ---
             const calculateCars = () => {
                 let total = parseInt(carAmount);
                 if (isNaN(total) || total <= 0) return;
 
-                // أسعار الفئات
-                const prices = { gr: 35, fr: 30, bs: 25, sh: 20, rn: 15, mk: 15, al: 10 };
+                // الأسعار
+                const prices = { al: 10, mk: 15, rn: 15, sh: 20, bs: 25, fr: 30, gr: 35 };
                 
-                // الأوزان النسبية (بناءً على طلبك: الجرار والفردي أعلى شيء، الأوتوبيس والميكروباص أقل شيء)
-                // الأرقام هنا تمثل "أجزاء من المبلغ"
+                // الأوزان النسبية (الجرار والفردي الأعلى نصيباً)
                 const weights = {
-                    gr: 0.35,  // الجرار (أعلى نسبة)
-                    fr: 0.22,  // الفردي
-                    sh: 0.13,  // شيفر
+                    gr: 0.35,  // جرار
+                    fr: 0.22,  // نقل فردي
+                    sh: 0.13,  // شفر
                     al: 0.15,  // ملاكي
                     rn: 0.08,  // ربع نقل
-                    mk: 0.05,  // ميكروباص (قليل)
-                    bs: 0.02   // أتوبيس (أقل شيء)
+                    mk: 0.05,  // ميكروباص
+                    bs: 0.02   // أتوبيس
                 };
 
                 let counts = {};
                 let currentSum = 0;
 
-                // توزيع أولي بناءً على الأوزان
                 Object.keys(weights).forEach(key => {
                     let allocatedMoney = total * weights[key];
                     counts[key] = Math.floor(allocatedMoney / prices[key]);
                     currentSum += counts[key] * prices[key];
                 });
 
-                // معالجة الفروقات لضمان تطابق المبلغ الإجمالي
                 let diff = total - currentSum;
-                
-                // إضافة الفرق لأكثر فئة متاحة (الجرار أولاً ثم الباقي) لتغطية المبلغ تماماً
-                const keysPriority = ['gr', 'fr', 'al', 'sh', 'rn', 'mk', 'bs'];
+                // الأولوية لإضافة الفروقات للجرار والفردي لزيادة نسبتهم
+                const keysPriority = ['gr', 'fr', 'sh', 'al', 'rn', 'mk', 'bs'];
                 for (let key of keysPriority) {
                     while (diff >= prices[key]) {
                         counts[key]++;
@@ -83,9 +78,7 @@
                 setCarResult({ 
                     al: counts.al, mk: counts.mk, rn: counts.rn, 
                     sh: counts.sh, fr: counts.fr, gr: counts.gr, bs: counts.bs,
-                    totalCount: Object.values(counts).reduce((a, b) => a + b, 0),
-                    totalValue: total, 
-                    isValid: (total - diff) === total 
+                    totalValue: total
                 });
             };
 
@@ -95,7 +88,6 @@
                 let a10a = 0, a15a = 0, a25a = 0, a30a = 0, a35a = 0;
                 let remaining = aa;
                 
-                // توزيع التذاكر بنسب متوازنة مع إعطاء ثقل للفئات الكبيرة
                 a35a = Math.floor((aa * 0.4) / 35);
                 remaining -= a35a * 35;
                 a30a = Math.floor((aa * 0.2) / 30);
@@ -105,9 +97,8 @@
                 a15a = Math.floor((aa * 0.1) / 15);
                 remaining -= a15a * 15;
                 a10a = Math.floor(remaining / 10);
-                remaining %= 10;
 
-                setTicketResult({ a10a, a15a, a25a, a30a, a35a, totalValue: aa - remaining });
+                setTicketResult({ a10a, a15a, a25a, a30a, a35a, totalValue: aa });
             };
 
             const handleCounterChange = (key, value) => setCounterInputs(p => ({...p, [key]: value}));
@@ -168,13 +159,13 @@
                                 <Icon name="wallet" size={40} />
                             </div>
                             <h2 className="text-3xl font-black mb-1">مرحباً كابتن مصطفى</h2>
-                            <p className="text-blue-100 text-sm font-medium">نظام التوزيع الذكي - الإصدار المحدث</p>
+                            <p className="text-blue-100 text-sm font-medium">نظام التوزيع الذكي</p>
                         </div>
                         <div className="px-6 -mt-10 space-y-4 pb-10">
                             {[
-                                {id: 'cars', t: 'توزيع السيارات', s: 'الجرار والفردي بأعلى نسبة', c: 'bg-blue-500', i: 'car'},
-                                {id: 'tickets', t: 'برنامج التذاكر', s: 'حساب فئات التذاكر المتاحة', c: 'bg-emerald-500', i: 'ticket'},
-                                {id: 'counters', t: 'برنامج العدادات', s: 'جرد نقدية وسيارات وتذاكر', c: 'bg-purple-500', i: 'calculator'}
+                                {id: 'cars', t: 'توزيع السيارات', s: 'توزيع حسب الفئات المعتمدة', c: 'bg-blue-500', i: 'car'},
+                                {id: 'tickets', t: 'برنامج التذاكر', s: 'حساب الفئات النقدية', c: 'bg-emerald-500', i: 'ticket'},
+                                {id: 'counters', t: 'برنامج العدادات', s: 'جرد النقدية والحصيلة', c: 'bg-purple-500', i: 'calculator'}
                             ].map(item => (
                                 <button key={item.id} onClick={() => setCurrentView(item.id)} className="w-full bg-white p-5 rounded-2xl shadow-sm flex items-center justify-between group active:scale-95 transition-all border border-gray-100">
                                     <div className="flex items-center">
@@ -205,17 +196,18 @@
                                 </div>
                             ) : (
                                 <div className="space-y-1">
-                                    <div className="bg-blue-600 p-6 rounded-3xl text-center text-white mb-4 shadow-inner">
-                                        <div className="text-sm opacity-80">إجمالي المبلغ الموزع</div>
+                                    <div className="bg-blue-600 p-6 rounded-3xl text-center text-white mb-4">
                                         <div className="text-4xl font-black">{carResult.totalValue} ج.م</div>
                                     </div>
-                                    <Card label="جرار" value={carResult.gr} subLabel="35 ج" highlight={true} />
-                                    <Card label="فردي" value={carResult.fr} subLabel="30 ج" highlight={true} />
-                                    <Card label="شيفر" value={carResult.sh} subLabel="20 ج" />
-                                    <Card label="ملاكي" value={carResult.al} subLabel="10 ج" />
-                                    <Card label="ربع نقل" value={carResult.rn} subLabel="15 ج" />
-                                    <Card label="ميكروباص" value={carResult.mk} subLabel="15 ج" />
-                                    <Card label="أوتوبيس" value={carResult.bs} subLabel="25 ج" />
+                                    {/* الترتيب المطلوب من قبل المستخدم */}
+                                    <Card label="1. ملاكي" value={carResult.al} subLabel="10 ج" />
+                                    <Card label="2. ميكروباص" value={carResult.mk} subLabel="15 ج" />
+                                    <Card label="3. ربع نقل" value={carResult.rn} subLabel="15 ج" />
+                                    <Card label="4. شفر" value={carResult.sh} subLabel="20 ج" />
+                                    <Card label="5. أتوبيس" value={carResult.bs} subLabel="25 ج" />
+                                    <Card label="6. نقل فردي" value={carResult.fr} subLabel="30 ج" highlight={true} />
+                                    <Card label="7. جرار" value={carResult.gr} subLabel="35 ج" highlight={true} />
+                                    
                                     <button onClick={() => {setCarResult(null); setCarAmount('');}} className="w-full mt-6 bg-white border-2 border-blue-600 text-blue-600 py-4 rounded-2xl font-bold text-lg">عملية جديدة</button>
                                 </div>
                             )}
@@ -274,10 +266,10 @@
                         <div className="p-4 space-y-3">
                             {counterType === 'money' ? [200, 100, 50, 20, 10, 5, 1].map(b => (
                                 <div key={b} className="bg-white p-2 rounded-xl border"><label className="text-xs text-gray-400 px-2">{b} جنيه</label><input type="number" onChange={e => handleCounterChange(b, e.target.value)} className="w-full p-2 text-xl font-bold outline-none" placeholder="0"/></div>
-                            )) : counterType === 'cars' ? ['grar', 'fardi', 'bus', 'shever', 'rob', 'micro', 'mlaki'].map(c => (
+                            )) : counterType === 'cars' ? ['mlaki', 'micro', 'rob', 'shever', 'bus', 'fardi', 'grar'].map(c => (
                                 <div key={c} className="bg-white p-2 rounded-xl border">
                                     <label className="text-xs text-gray-400 px-2 uppercase">
-                                        {c === 'grar' ? 'جرار (35ج)' : c === 'fardi' ? 'فردي (30ج)' : c === 'bus' ? 'أوتوبيس (25ج)' : c === 'shever' ? 'شيفر (20ج)' : c === 'rob' ? 'ربع نقل (15ج)' : c === 'micro' ? 'ميكروباص (15ج)' : 'ملاكي (10ج)'}
+                                        {c === 'mlaki' ? 'ملاكي (10ج)' : c === 'micro' ? 'ميكروباص (15ج)' : c === 'rob' ? 'ربع نقل (15ج)' : c === 'shever' ? 'شفر (20ج)' : c === 'bus' ? 'أتوبيس (25ج)' : c === 'fardi' ? 'نقل فردي (30ج)' : 'جرار (35ج)'}
                                     </label>
                                     <input type="number" onChange={e => handleCounterChange(c, e.target.value)} className="w-full p-2 text-xl font-bold outline-none" placeholder="0"/>
                                 </div>
